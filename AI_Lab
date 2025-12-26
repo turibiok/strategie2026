@@ -1,0 +1,458 @@
+import React, { useState } from 'react';
+import { 
+  Brain, 
+  Rocket, 
+  Crown, 
+  Target, 
+  Zap, 
+  Globe, 
+  MessageSquare, 
+  Sparkles, 
+  Award, 
+  ChevronRight,
+  Menu,
+  X,
+  Linkedin,
+  Mail,
+  ExternalLink
+} from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, Legend } from 'recharts';
+
+const App = () => {
+  const [activeTab, setActiveTab] = useState('about'); // Default to About to see the change
+  const [activeBook, setActiveBook] = useState('book1');
+  const [activeQuarter, setActiveQuarter] = useState(1);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // AI States
+  const [aiCoachInput, setAiCoachInput] = useState('');
+  const [aiCoachOutput, setAiCoachOutput] = useState('');
+  const [isAiCoachLoading, setIsAiCoachLoading] = useState(false);
+  
+  const [aiContentTopic, setAiContentTopic] = useState('IA x Santé Afrique');
+  const [aiContentOutput, setAiContentOutput] = useState('');
+  const [isAiContentLoading, setIsAiContentLoading] = useState(false);
+
+  // Data for Charts
+  const trajectoryData = [
+    { name: 'T1', impact: 10, effort: 90 },
+    { name: 'T2', impact: 40, effort: 60 },
+    { name: 'T3', impact: 70, effort: 45 },
+    { name: 'T4', impact: 95, effort: 30 },
+  ];
+
+  const radarData = [
+    { subject: 'Rigueur', A: activeBook === 'book1' ? 90 : (activeBook === 'book2' ? 60 : 50), fullMark: 100 },
+    { subject: 'Santé', A: activeBook === 'book1' ? 90 : (activeBook === 'book2' ? 70 : 80), fullMark: 100 },
+    { subject: 'Réseautage', A: activeBook === 'book1' ? 30 : (activeBook === 'book2' ? 90 : 70), fullMark: 100 },
+    { subject: 'Contenu', A: activeBook === 'book1' ? 40 : (activeBook === 'book2' ? 95 : 60), fullMark: 100 },
+    { subject: 'Système', A: activeBook === 'book1' ? 20 : (activeBook === 'book2' ? 40 : 95), fullMark: 100 },
+  ];
+
+  const booksData = {
+    book1: {
+      title: "Livre I : Stabilisation & Clarté",
+      subtitle: "Fondations cognitives & énergétiques",
+      icon: <Brain className="w-8 h-8 text-teal-600" />,
+      goal: "Poser les fondations invisibles mais décisives de toute trajectoire d'excellence.",
+      chapters: ["Architecture Cognitive", "Minimalisme Stratégique", "Santé & Énergie", "Stabilisation Financière"],
+      quote: "L'objectif n'est pas d'en faire plus, mais de créer les conditions internes pour que chaque action ait un levier maximal."
+    },
+    book2: {
+      title: "Livre II : Accélération & Positionnement",
+      subtitle: "Visibilité & Influence Stratégique",
+      icon: <Rocket className="w-8 h-8 text-teal-600" />,
+      goal: "Rendre l'expertise visible, crédible et désirable à l'échelle internationale.",
+      chapters: ["Personal Branding", "Réseautage Expert", "Leadership d'Opinion", "Production Signature"],
+      quote: "Transformer la compétence interne en autorité externe reconnue."
+    },
+    book3: {
+      title: "Livre III : Consécration & Scaling",
+      subtitle: "Systèmes & Transmission",
+      icon: <Crown className="w-8 h-8 text-teal-600" />,
+      goal: "Transformer l'impact individuel en systèmes durables et scalables.",
+      chapters: ["Scaling Responsable", "Gouvernance & Pérennité", "Transmission & Mentorat", "Vision Long Terme"],
+      quote: "Le véritable succès est celui qui survit à son créateur par la force du système."
+    }
+  };
+
+  const quarterData = {
+    1: { title: "T1 : Audit & Fondations", focus: "Nettoyage radical", actions: ["Audit des engagements", "Rédaction positionnement", "Nettoyage agenda"], deliverable: "Socle de stabilité opérationnel" },
+    2: { title: "T2 : Lancement Signatures", focus: "Visibilité accrue", actions: ["Lancement projets signatures", "Publications clés", "Ciblage influenceurs"], deliverable: "Preuve d'autorité publique" },
+    3: { title: "T3 : Consolidation Expert", focus: "Validation académique", actions: ["Candidatures ciblées (Doctorat)", "Interventions publiques", "Renforcement réseau"], deliverable: "Crédibilité institutionnelle" },
+    4: { title: "T4 : Scaling & Plan 2030", focus: "Pérennisation", actions: ["Modèle de scaling", "Bilan stratégique", "Planification futur"], deliverable: "Système autonome prêt" }
+  };
+
+  // AI Mockup Functions
+  const callGemini = async (prompt, systemPrompt) => {
+    const apiKey = ""; 
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+    const payload = {
+      contents: [{ parts: [{ text: prompt }] }],
+      systemInstruction: { parts: [{ text: systemPrompt }] }
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || "Erreur de génération.";
+    } catch (e) {
+      return "Le système IA est temporairement indisponible.";
+    }
+  };
+
+  const handleAiCoach = async () => {
+    if (!aiCoachInput) return;
+    setIsAiCoachLoading(true);
+    const res = await callGemini(
+      `L'utilisateur dit: "${aiCoachInput}". Donne 3 conseils stratégiques courts.`,
+      "Tu es le mentor IA de Mahuvivi. Ton ton est intellectuel, pragmatique et protecteur de son énergie."
+    );
+    setAiCoachOutput(res);
+    setIsAiCoachLoading(false);
+  };
+
+  const handleAiContent = async () => {
+    setIsAiContentLoading(true);
+    const res = await callGemini(
+      `Génère 3 titres LinkedIn pour : "${aiContentTopic}".`,
+      "Tu es un expert en personal branding pour profils à haut potentiel."
+    );
+    setAiContentOutput(res);
+    setIsAiContentLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-stone-50 text-stone-800 font-sans selection:bg-teal-100 selection:text-teal-900">
+      
+      {/* Navigation */}
+      <nav className="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-stone-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('vision')}>
+              <div className="bg-teal-900 text-white p-1.5 rounded-lg shadow-md">
+                <Brain className="w-5 h-5" />
+              </div>
+              <span className="text-lg font-bold text-stone-900 tracking-tighter">M.T.K. 2026</span>
+            </div>
+            
+            <div className="hidden md:flex space-x-8 items-center">
+              {[
+                {id: 'vision', label: 'Vision'},
+                {id: 'livres', label: 'Stratégie'},
+                {id: 'pta', label: 'Exécution'},
+                {id: 'ai-lab', label: 'AI Lab'},
+                {id: 'about', label: 'Profil'}
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`text-xs font-bold uppercase tracking-widest transition-all pb-1 border-b-2 ${
+                    activeTab === tab.id ? 'text-teal-800 border-teal-800' : 'text-stone-400 border-transparent hover:text-teal-600'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="md:hidden">
+              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-stone-600">
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden bg-white border-t border-stone-100 p-4 space-y-2 fade-in">
+            {['vision', 'livres', 'pta', 'ai-lab', 'about'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => { setActiveTab(tab); setIsMenuOpen(false); }}
+                className={`block w-full text-left px-4 py-3 rounded-xl transition ${
+                  activeTab === tab ? 'bg-teal-50 text-teal-800 font-bold' : 'text-stone-500'
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </div>
+        )}
+      </nav>
+
+      {/* Main Content Area */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* About / Profil Section (Updated with IMG_7858.jpg) */}
+        {activeTab === 'about' && (
+          <div className="fade-in">
+            <div className="flex flex-col lg:flex-row gap-12 lg:items-start items-center">
+              {/* Profile Image Container */}
+              <div className="w-full lg:w-5/12 max-w-md">
+                <div className="relative">
+                  {/* Decorative element */}
+                  <div className="absolute -top-6 -left-6 w-32 h-32 bg-amber-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+                  <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-teal-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+                  
+                  <div className="relative bg-white p-3 rounded-[2.5rem] shadow-2xl border border-stone-200/50">
+                    <img 
+                      src="IMG_7858.jpg" 
+                      alt="Mahuvivi Turibio KEKE" 
+                      className="w-full aspect-[4/5] object-cover rounded-[2rem] shadow-inner"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "https://ui-avatars.com/api/?name=Mahuvivi+KEKE&background=0f766e&color=fff&size=512";
+                      }}
+                    />
+                    
+                    {/* Position Label Overlay */}
+                    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-[85%] bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-white/50 text-center">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-1">Architecture Stratégique</p>
+                        <p className="text-teal-900 font-black text-lg">MAHUVIVI TURIBIO KEKE</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-center gap-4 mt-8">
+                   <button className="p-4 bg-white rounded-2xl border border-stone-200 text-stone-400 hover:text-teal-700 hover:shadow-md transition-all">
+                      <Linkedin size={20} />
+                   </button>
+                   <button className="p-4 bg-white rounded-2xl border border-stone-200 text-stone-400 hover:text-teal-700 hover:shadow-md transition-all">
+                      <Mail size={20} />
+                   </button>
+                </div>
+              </div>
+
+              {/* Text / Manifest Content */}
+              <div className="w-full lg:w-7/12 py-4">
+                <div className="mb-10">
+                  <span className="text-amber-600 font-bold uppercase tracking-[0.4em] text-[10px] mb-4 block">Manifeste 2026</span>
+                  <h2 className="text-5xl font-black text-stone-900 mb-6 tracking-tighter leading-none">Individu-Système & Impact.</h2>
+                  <p className="text-xl text-stone-500 font-medium leading-relaxed italic border-l-4 border-teal-800 pl-6">
+                    "2026 est l'année de la bascule : passer d'un expert reconnu à un bâtisseur de systèmes résilients pour l'Afrique."
+                  </p>
+                </div>
+
+                <div className="space-y-8 text-lg text-stone-600 leading-relaxed font-medium">
+                  <p>
+                    Spécialiste de la transformation numérique, je concentre mon énergie sur l'intersection critique entre l'<strong>Intelligence Artificielle</strong>, les <strong>Systèmes de Santé</strong> et la <strong>Justice Sociale</strong>.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                    <div className="bg-white p-6 rounded-3xl border border-stone-100 shadow-sm">
+                        <div className="flex items-center gap-3 mb-4">
+                          <Brain className="text-teal-700" size={20} />
+                          <h4 className="font-bold text-stone-900 uppercase text-xs tracking-widest">Axe Cognitif</h4>
+                        </div>
+                        <p className="text-sm text-stone-500">Penser en systèmes pour résoudre des problèmes complexes là où les solutions linéaires échouent.</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-3xl border border-stone-100 shadow-sm">
+                        <div className="flex items-center gap-3 mb-4">
+                          <Globe className="text-amber-700" size={20} />
+                          <h4 className="font-bold text-stone-900 uppercase text-xs tracking-widest">Vision Afrique</h4>
+                        </div>
+                        <p className="text-sm text-stone-500">Démocratiser l'accès à l'excellence technologique comme vecteur de dignité humaine.</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 p-8 bg-teal-900 text-white rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+                    <Sparkles className="absolute top-4 right-4 text-teal-700 opacity-30 group-hover:scale-110 transition-transform" size={80} />
+                    <p className="text-lg font-serif italic mb-4 relative z-10">
+                      "Mon ambition est de transformer ma lucidité en levier. Chaque action doit être une pierre posée dans l'édifice d'une Afrique techniquement souveraine et socialement juste."
+                    </p>
+                    <div className="flex items-center gap-2 text-teal-300 font-bold text-xs uppercase tracking-widest">
+                       <Award size={14} /> 
+                       <span>Engagement Stratégique 2026</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Other Sections (Simplified versions of previous logic) */}
+        {activeTab === 'vision' && (
+          <div className="fade-in space-y-12">
+            <header className="text-center max-w-4xl mx-auto pt-10">
+              <h1 className="text-5xl font-black text-stone-900 mb-6 tracking-tighter">Architecture de Destinée.</h1>
+              <p className="text-xl text-stone-500">Un cadre opérationnel pour transformer la compétence en autorité systémique d'ici 2026.</p>
+            </header>
+            
+            <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-stone-100">
+              <div className="h-[350px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trajectoryData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f1f1" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'}} />
+                    <Line name="Impact" type="monotone" dataKey="impact" stroke="#0f766e" strokeWidth={5} dot={{r: 6, fill: '#0f766e'}} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Strategy / Books Section */}
+        {activeTab === 'livres' && (
+          <div className="fade-in grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {Object.entries(booksData).map(([key, book]) => (
+              <div 
+                key={key}
+                onClick={() => setActiveBook(key)}
+                className={`p-8 rounded-[2.5rem] border-2 transition-all cursor-pointer ${
+                  activeBook === key ? 'bg-white border-teal-600 shadow-2xl scale-[1.02]' : 'bg-stone-100 border-transparent opacity-60 hover:opacity-100'
+                }`}
+              >
+                <div className="mb-6">{book.icon}</div>
+                <h3 className="text-xl font-black text-stone-900 mb-2">{book.title}</h3>
+                <p className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-6">{book.subtitle}</p>
+                <p className="text-sm text-stone-600 leading-relaxed mb-8">{book.goal}</p>
+                <div className="space-y-2">
+                  {book.chapters.map((c, i) => (
+                    <div key={i} className="flex items-center gap-2 text-[13px] font-bold text-stone-800">
+                      <div className="w-1.5 h-1.5 bg-teal-600 rounded-full"></div>
+                      {c}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Execution / PTA Section */}
+        {activeTab === 'pta' && (
+          <div className="fade-in space-y-8">
+            <div className="flex justify-center gap-4">
+               {[1, 2, 3, 4].map(q => (
+                 <button 
+                  key={q} 
+                  onClick={() => setActiveQuarter(q)}
+                  className={`px-8 py-3 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${
+                    activeQuarter === q ? 'bg-teal-900 text-white shadow-xl' : 'bg-white text-stone-400 border border-stone-100'
+                  }`}
+                 >
+                   T{q}
+                 </button>
+               ))}
+            </div>
+            
+            <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl border border-stone-100 relative overflow-hidden">
+               <div className="absolute top-0 right-0 p-12 opacity-[0.03] text-stone-900 pointer-events-none">
+                  <Target size={200} />
+               </div>
+               <div className="relative z-10">
+                 <h2 className="text-4xl font-black text-teal-900 mb-4">{quarterData[activeQuarter].title}</h2>
+                 <div className="inline-block px-4 py-2 bg-amber-50 text-amber-700 rounded-full font-bold text-xs uppercase tracking-[0.2em] mb-10">
+                    Focus: {quarterData[activeQuarter].focus}
+                 </div>
+                 
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {quarterData[activeQuarter].actions.map((act, i) => (
+                      <div key={i} className="group p-6 bg-stone-50 rounded-3xl border border-stone-100 hover:bg-white hover:border-teal-200 transition-all">
+                         <ChevronRight className="text-teal-700 mb-4 group-hover:translate-x-1 transition-transform" />
+                         <p className="text-stone-800 font-bold leading-tight">{act}</p>
+                      </div>
+                    ))}
+                 </div>
+               </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Lab Section */}
+        {activeTab === 'ai-lab' && (
+          <div className="fade-in grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="bg-white p-10 rounded-[3rem] shadow-xl border border-stone-100">
+               <div className="flex items-center gap-4 mb-8">
+                  <div className="p-3 bg-teal-100 rounded-2xl text-teal-800"><Brain size={24}/></div>
+                  <h3 className="text-2xl font-black text-stone-900">Coach de Lucidité</h3>
+               </div>
+               <textarea 
+                className="w-full bg-stone-50 border border-stone-100 rounded-3xl p-6 mb-6 h-40 outline-none focus:ring-2 focus:ring-teal-100"
+                placeholder="Exposez un défi stratégique ou une dispersion mentale..."
+                value={aiCoachInput}
+                onChange={(e) => setAiCoachInput(e.target.value)}
+               />
+               <button 
+                onClick={handleAiCoach}
+                className="w-full bg-teal-900 text-white py-5 rounded-3xl font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2"
+               >
+                 {isAiCoachLoading ? "Analyse..." : <><Sparkles size={18}/> Obtenir un Recalibrage</>}
+               </button>
+               {aiCoachOutput && <div className="mt-8 p-6 bg-teal-50 rounded-2xl text-sm italic border-l-4 border-teal-800">{aiCoachOutput}</div>}
+            </div>
+
+            <div className="bg-white p-10 rounded-[3rem] shadow-xl border border-stone-100">
+               <div className="flex items-center gap-4 mb-8">
+                  <div className="p-3 bg-amber-100 rounded-2xl text-amber-800"><Rocket size={24}/></div>
+                  <h3 className="text-2xl font-black text-stone-900">Personal Branding IA</h3>
+               </div>
+               <div className="grid grid-cols-1 gap-2 mb-6">
+                  {['IA x Santé Afrique', 'Leadership Systémique', 'Justice Sociale'].map(t => (
+                    <button 
+                      key={t}
+                      onClick={() => setAiContentTopic(t)}
+                      className={`p-4 rounded-2xl border-2 text-left text-sm font-bold transition-all ${
+                        aiContentTopic === t ? 'border-amber-500 bg-amber-50 text-amber-900' : 'border-stone-100 text-stone-400 hover:border-stone-200'
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+               </div>
+               <button 
+                onClick={handleAiContent}
+                className="w-full bg-stone-900 text-white py-5 rounded-3xl font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2"
+               >
+                 {isAiContentLoading ? "Génération..." : <><MessageSquare size={18}/> Créer des Titres LinkedIn</>}
+               </button>
+               {aiContentOutput && <div className="mt-8 p-6 bg-stone-50 rounded-2xl text-sm font-bold border-l-4 border-stone-800">{aiContentOutput}</div>}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <footer className="py-12 border-t border-stone-200 mt-20">
+         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-2 opacity-30">
+               <Brain size={16} />
+               <span className="text-[10px] font-bold uppercase tracking-[0.3em]">M.T.K. Stratégie 2026 — Archive Privée</span>
+            </div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-400">
+               Design & Vision par Mahuvivi KEKE
+            </div>
+         </div>
+      </footer>
+
+      {/* Basic Styles for animations */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+        
+        @keyframes blob {
+          0% { transform: scale(1); }
+          33% { transform: scale(1.1); }
+          66% { transform: scale(0.9); }
+          100% { transform: scale(1); }
+        }
+        .animate-blob { animation: blob 7s infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+      `}} />
+    </div>
+  );
+};
+
+export default App;
